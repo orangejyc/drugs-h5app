@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>手机扫码</title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/immersed.js"></script>
+
+		<script type="text/javascript">
+			var gqrcharset = "UTF-8";
+			var img = null;
+			var blist = [];
+
+			//var xhr = null;
+			var w = null;
+
+			function scaned(t, r, f) {
+				var d = new Date();
+				var h = d.getHours(),
+					m = d.getMinutes(),
+					s = d.getSeconds(),
+					ms = d.getMilliseconds();
+				if(h < 10) {
+					h = '0' + h;
+				}
+				if(m < 10) {
+					m = '0' + m;
+				}
+				if(s < 10) {
+					s = '0' + s;
+				}
+				if(ms < 10) {
+					ms = '00' + ms;
+				} else if(ms < 100) {
+					ms = '0' + ms;
+				}
+				var ts = '[' + h + ':' + m + ':' + s + '.' + ms + ']';
+				var li = null,
+					hl = document.getElementById("history");
+				if(blist.length > 0) {
+					li = document.createElement("li");
+					li.className = "ditem";
+					hl.insertBefore(li, hl.childNodes[0]);
+				} else {
+					li = document.getElementById("nohistory");
+				}
+				li.id = blist.length;
+				if(w) {
+					return;
+				}
+				w = plus.nativeUI.showWaiting();
+				var xhr = new plus.net.XMLHttpRequest();
+
+				xhr.onreadystatechange = function() {
+					switch(xhr.readyState) {
+						case 4:
+							w.close();
+							w = null;
+							if(xhr.status == 200) {
+								var uploadRs = xhr.responseText;
+								//var uploadRo =JSON.stringify(uploadRs);
+								var uploadRo = JSON.parse(uploadRs);
+								var html = '[' + h + ':' + m + ':' + s + '.' + ms + ']' + '　　' + t + '码<div class="hdata">';
+								//html += r;	
+								html += uploadRo.data;
+								html += "<br>";
+								html += uploadRo.statusText;
+								html += '</div>';
+								li.innerHTML = html;
+								li.setAttribute("onclick", "selected(id);");
+								//blist[blist.length] = {type:t,result:r,file:f};	
+								blist[blist.length] = {
+									type: t,
+									result: uploadRo.data,
+									file: f
+								};
+								update(t, uploadRo.data, f);
+							} else {
+								//plus.nativeUI.alert(xhr.status );
+
+								plus.nativeUI.alert("上传扫码结果失败！", null, "上传扫码结果");
+							}
+							break;
+						default:
+							break;
+					}
+				}
+
+				var ustate = app.getState();
+				xhr.open("GET", app.qrUrl + "qrUpload&uid=" + ustate.uid + "&qr=" + r + "&qrcharset="+
+					gqrcharset);
+				xhr.responseType = "json";
+				xhr.send();
+			}
+
+			function selected(id) {
+				var h = blist[id];
+				update(h.type, h.result, h.file);
+				if(h.result.indexOf("http://") == 0 || h.result.indexOf("https://") == 0) {
+					plus.nativeUI.confirm(h.result, function(i) {
+						if(i.index == 0) {
+							plus.runtime.openURL(h.result);
+						}
+					}, "", ["打开", "取消"]);
+				} else {
+					plus.nativeUI.alert(h.result);
+				}
+			}
+
+			function update(t, r, f) {
+				outSet("扫描成功：");
+				outLine(t);
+				outLine(r);
+				outLine("\n图片地址：" + f);
+				if(!f || f == "null") {
+					img.src = "images/barcode.png";
+				} else {
+					/*
+					plus.io.resolveLocalFileSystemURL(f,function(entry){
+						img.src=entry.toLocalURL();
+					});*/
+					//img.src = "http://localhost:13131/"+f;
+				}
+			}
+
+			function onempty() {
+				if(window.plus) {
+					plus.nativeUI.alert('无扫描记录');
+				} else {
+					alert('无扫描记录');
+				}
+			}
+
+			function cleanHistroy() {
+				if(blist.length > 0) {
+					var hl = document.getElementById("history");
+					hl.innerHTML = '<li id="nohistory" class="ditem" onclick="onempty();">无历史记录	</li>';
+				}
+				plus.io.resolveLocalFileSystemURL("_doc/barcode/", function(entry) {
+					entry.removeRecursively(function() {
+						// Success
+					}, function(e) {
+						//alert( "failed"+e.message );
+					});
+				});
+			}
+
+			function payAli() {
+				plus.nativeUI.alert("待实现");
+
+			}
+
+			function startScan(qrcharset) {
+				gqrcharset = qrcharset;
+				clicked('barcode_scan_utf8.html', true, true);
+			}
+		</script>
+		<link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+		<style type="text/css" media="screen">
+			.hdata {
+				color: #e1673e;
+				font-size: 9px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+		</style>
+
+		<style>
+			ul {
+				font-size: 14px;
+				color: #8f8f94;
+			}
+			
+			.mui-btn {
+				padding: 10px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav" style="padding-right: 15px;">
+			<h1 class="mui-title">手机扫码</h1>
+			<!--<button id='setting' class=" mui-pull-right mui-btn-link">设置</button>-->
+		</header>
+		<div id="dcontent" class="dcontent">
+
+			<!--
+			<img style="width:40%" id="bimg" src="images/barcode.png"/>
+	-->
+			<!--
+			<ul id="accountinfo" class="dlist" style="text-align:center;">
+				<li id="accountinfoLi" class="ditem">您好 <span id='account'></span>，您已成功登录。</li>
+			</ul>
+		-->
+
+			<br>
+			<div class="mui-card">
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell mui-collapse">
+						<a class="mui-navigate-right" href="#">您好 <span id='account'></span>，您已成功登录。</a>
+						<div class="mui-collapse-content">
+							<form class="mui-input-group">
+								<div class="mui-input-row">
+									<p>您的VIP特权于[ <span id='expt'></span>]到期</p>
+								</div>
+
+								<div class="mui-input-row">
+									<input id="pwdBox" type="password" placeholder="请输入原密码">
+								</div>
+								<div class="mui-input-row">
+									<input id="npwdBox" type="password" placeholder="请输入新密码">
+								</div>
+
+								<div class="mui-input-row">
+									<input id="qnpwdBox" type="password" placeholder="请再次输入新密码">
+								</div>
+								<div class="mui-button-row">
+								</div>
+							</form>
+
+							<button id="changePasswordBtn" class="mui-btn mui-btn-primary mui-btn-block" type="button" onclick="return false;">修改密码</button>
+
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<br>
+			<div class="mui-card">
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell mui-collapse">
+						<a class="mui-navigate-right" href="#">包月VIP(10元/月)</a>
+						<div class="mui-collapse-content">
+							<form class="mui-input-group">
+								<div class="mui-input-row">
+									<input id="alipaymNumBox" type="text" placeholder="请输入购买VIP月数">
+								</div>
+								<div class="mui-button-row">
+
+								</div>
+							</form>
+							<button id="alipaym" class="mui-btn mui-btn-primary mui-btn-block" type="button">支付</button>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div class="mui-card">
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell mui-collapse">
+						<a class="mui-navigate-right" href="#">包年VIP(100元/年)</a>
+						<div class="mui-collapse-content">
+							<form class="mui-input-group">
+								<div class="mui-input-row">
+									<input id="alipayyNumBox" type="text" placeholder="请输入购买VIP年数">
+								</div>
+								<div class="mui-button-row">
+
+								</div>
+							</form>
+							<button id="alipayy" class="mui-btn mui-btn-primary mui-btn-block" type="button" onclick="return false;">支付</button>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<br>
+			<div class="mui-card">
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell mui-collapse">
+						<a class="mui-navigate-right" href="#">历史记录</a>
+						<div class="mui-collapse-content">
+							<ul id="history" class="dlist" style="text-align:left;">
+								<li id="nohistory" class="ditem" onclick="onempty();">无历史记录 </li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<br/>
+			<div class="button button-waring" onclick="cleanHistroy();">清空历史记录</div>
+			<!--
+			<ul id="history" class="dlist" style="text-align:left;">
+				<li id="nohistory" class="ditem" onclick="onempty();">无历史记录	</li>
+			</ul>
+			-->
+
+			<!--
+			<div class="button button-waring" onclick="cleanHistroy();">清空历史记录</div>
+			-->
+
+			<div class="button" onclick="startScan('GBK');">扫一扫(GBK)</div>
+			<div class="button" onclick="startScan('UTF-8');">扫一扫(UTF-8)</div>
+			<div id="exit" class="button button-waring">注销</div>
+			<!--
+			<div class="button" onclick="payAli();">支付宝支付(100/年)</div>
+			-->
+
+			<!--
+			<div class="button" onclick="clicked('barcode_scan2.html',true,true);">扫一扫（自定义）</div>
+			-->
+
+		</div>
+
+		<script>
+			(function($, doc) {
+				$.init();
+
+				var account = doc.getElementById('account');
+				var exptSpan = doc.getElementById('expt');
+				var changePasswordBtn = doc.getElementById('changePasswordBtn');
+				var alipaymBtn = doc.getElementById('alipaym');
+				var alipayyBtn = doc.getElementById('alipayy');
+
+				alipaymBtn.addEventListener('tap', function() {
+					var state = app.getState();
+					var alipaymNumBox = doc.getElementById('alipaymNumBox');
+					var payInfo = {
+						uid: state.account,
+						account: state.account,
+						type: 'M',
+						num: alipaymNumBox.value
+					};
+					app.paywx(payInfo, function(err, info) {
+						plus.nativeUI.toast(err || info);
+					});
+				}, false);
+				alipayyBtn.addEventListener('tap', function() {
+					var state = app.getState();
+					var alipayyNumBox = doc.getElementById('alipayyNumBox');
+					var payInfo = {
+						uid: state.account,
+						account: state.account,
+						type: 'Y',
+						num: alipayyNumBox.value
+					};
+					app.paywx(payInfo, function(err, info) {
+						plus.nativeUI.toast(err || info);
+					});
+				}, false);
+
+				changePasswordBtn.addEventListener('tap', function() {
+					var state = app.getState();
+					var pwdBox = doc.getElementById('pwdBox');
+					var npwdBox = doc.getElementById('npwdBox');
+					var qnpwdBox = doc.getElementById('qnpwdBox');
+
+					var changeInfo = {
+						uname: state.account,
+						pwd: pwdBox.value,
+						npwd: npwdBox.value,
+						qnpwd: qnpwdBox.value
+					};
+					app.changePassword(changeInfo, function(err, info) {
+						plus.nativeUI.toast(err || info);
+					});
+				}, false);
+				//
+				window.addEventListener('show', function() {
+					var state = app.getState();
+					account.innerText = state.account;
+					exptSpan.innerText = state.expt;
+					//mui('#exit').popover('hide');
+				}, false);
+
+				//退出操作******************
+				document.getElementById('exit').addEventListener('tap', function() {
+					if(mui.os.ios) {
+						app.setState({});
+						mui.openWindow({
+							url: 'login.html',
+							id: 'login',
+							show: {
+								aniShow: 'pop-in'
+							},
+							waiting: {
+								autoShow: false
+							}
+						});
+						return;
+					}
+					var btnArray = [{
+						title: "注销当前账号"
+					}, {
+						title: "直接关闭应用"
+					}];
+					plus.nativeUI.actionSheet({
+						cancel: "取消",
+						buttons: btnArray
+					}, function(event) {
+						var index = event.index;
+						switch(index) {
+							case 1:
+								app.setState({});
+								mui.openWindow({
+									url: 'login.html',
+									id: 'login',
+									show: {
+										aniShow: 'pop-in'
+									},
+									waiting: {
+										autoShow: false
+									}
+								});
+								break;
+							case 2:
+								plus.runtime.quit();
+								break;
+						}
+					});
+				}, false);
+
+				$.plusReady(function() {
+
+					$.oldBack = mui.back;
+					var backButtonPress = 0;
+					$.back = function(event) {
+						backButtonPress++;
+						if(backButtonPress > 1) {
+							plus.runtime.quit();
+						} else {
+							plus.nativeUI.toast('再按一次退出应用');
+						}
+						setTimeout(function() {
+							backButtonPress = 0;
+						}, 1000);
+						return false;
+					};
+				});
+			}(mui, document));
+		</script>
+
+	</body>
+
+</html>

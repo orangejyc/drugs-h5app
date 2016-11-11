@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>手机扫码</title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript" src="js/immersed.js" ></script>
+		
+		<script type="text/javascript">
+var img = null;
+var blist = [];
+var qrUrl="http://139.196.30.42:8080/drugs/main.action";
+//var xhr = null;
+var w=null;
+function scaned( t, r, f ) {
+	var d = new Date();	
+	var h=d.getHours(),m=d.getMinutes(),s=d.getSeconds(),ms=d.getMilliseconds();	
+	if ( h < 10 ) { h='0'+h; }
+	if ( m < 10 ) { m='0'+m; }
+	if ( s < 10 ) { s='0'+s; }
+	if ( ms < 10 ) { ms='00'+ms; } else if ( ms < 100 ) { ms='0'+ms; }
+	var ts = '['+h+':'+m+':'+s+'.'+ms+']';
+	var li=null,hl = document.getElementById("history");
+	if ( blist.length > 0 ) {
+		li = document.createElement("li");
+		li.className = "ditem";
+		hl.insertBefore( li, hl.childNodes[0] );
+	} else {
+		li = document.getElementById("nohistory");
+	}
+	li.id = blist.length;
+	if(w){return;}
+	w=plus.nativeUI.showWaiting();
+	var xhr=new plus.net.XMLHttpRequest();
+	//xhr.responseType = "json";
+	//xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+	//xhr.setRequestHeader('Content-Type','text/xml;charset=utf-8');
+	
+	xhr.onreadystatechange=function(){
+		switch(xhr.readyState){
+			case 4:
+			w.close();w=null;
+			if(xhr.status==200){
+				var uploadRs=xhr.responseText;
+				//var uploadRo =JSON.stringify(uploadRs);
+				var uploadRo =JSON.parse(uploadRs);
+				var html = '['+h+':'+m+':'+s+'.'+ms+']'+'　　'+t+'码<div class="hdata">';				
+				html += r;	
+				html += "<br>";	
+				html += uploadRo.statusText;
+				html += '</div>';			
+				li.innerHTML = html;			
+				li.setAttribute( "onclick", "selected(id);" );			
+				blist[blist.length] = {type:t,result:r,file:f};			
+				update( t, r, f );		
+				/*
+				plus.payment.request(pays[id],order,function(result){
+					outLine("----- 支付成功 -----");
+					outLine(JSON.stringify(result));
+					plus.nativeUI.alert("支付成功：感谢你的支持，我们会继续努力完善产品。",function(){
+						back();
+					},"捐赠");
+				},function(e){
+					outLine("----- 支付失败 -----");
+					outLine("["+e.code+"]："+e.message);
+					plus.nativeUI.alert("更多错误信息请参考支付(Payment)规范文档：http://www.html5plus.org/#specification#/specification/Payment.html",null,"支付失败："+e.code);
+				});*/
+			}else{
+				//plus.nativeUI.alert(xhr.status );
+				
+				plus.nativeUI.alert("上传扫码结果失败！",null,"上传扫码结果");
+			}
+			break;
+			default:
+			break;
+		}
+	}
+	var qrData={
+		"action":"mqrupload",
+		"uid":"4007a69f-e180-4564-a6df-f9ddf87f770d",
+		"qr":r
+	};
+	//xhr.open('POST',qrUrl);
+	var ustate = app.getState();
+	xhr.open("GET",qrUrl+"?action=mqrupload&uid="+ustate.uid+"&qr="+r);
+	xhr.responseType = "json";
+	xhr.send();
+	//xhr.responseType = "json";
+	//xhr.setRequestHeader('Content-Type','text/xml;charset=utf-8');
+	//xhr.send(qrData);
+	//xhr.send("action=mqrupload");
+	//plus.nativeUI.alert(qrUrl+r);
+	
+
+
+/*
+	var html = '['+h+':'+m+':'+s+'.'+ms+']'+'　　'+t+'码<div class="hdata">';
+	html += r;
+	html += '</div>';
+	li.innerHTML = html;
+	li.setAttribute( "onclick", "selected(id);" );
+	blist[blist.length] = {type:t,result:r,file:f};
+	update( t, r, f );
+	*/
+}
+function selected( id ) {
+	var h = blist[id];
+	update( h.type, h.result, h.file );
+	if ( h.result.indexOf("http://")==0  || h.result.indexOf("https://")==0 ) {
+		plus.nativeUI.confirm( h.result, function ( i ) {
+			if ( i.index == 0 ) {
+				plus.runtime.openURL( h.result );
+			}
+		}, "", ["打开","取消"] );
+	} else {
+		plus.nativeUI.alert( h.result );
+	}
+}
+function update( t, r, f ) {
+	outSet( "扫描成功：");
+	outLine( t );
+	outLine( r );
+	outLine( "\n图片地址："+f );
+	if ( !f || f=="null" ) {
+		img.src = "images/barcode.png";	
+	} else {
+		plus.io.resolveLocalFileSystemURL(f,function(entry){
+			img.src=entry.toLocalURL();
+		});
+		//img.src = "http://localhost:13131/"+f;
+	}
+}
+function onempty() {
+	if ( window.plus ) {
+		plus.nativeUI.alert('无扫描记录');
+	} else {
+		alert( '无扫描记录' );
+	}
+}
+function cleanHistroy() {
+	if ( blist.length > 0 ) {
+		var hl = document.getElementById("history");
+		hl.innerHTML = '<li id="nohistory" class="ditem" onclick="onempty();">无历史记录	</li>';
+	}
+	plus.io.resolveLocalFileSystemURL( "_doc/barcode/", function ( entry ) {
+		entry.removeRecursively( function () {
+			// Success
+		}, function ( e ) {
+			//alert( "failed"+e.message );
+		});
+	} );
+}
+
+function payAli(){
+	plus.nativeUI.alert( "待实现" );
+}
+		</script>
+		<link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8"/>
+		<style type="text/css" media="screen">
+.hdata {
+	color: #e1673e;	
+	font-size: 14px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+		</style>
+
+		<style>
+			ul {
+				font-size: 14px;
+				color: #8f8f94;
+			}
+			.mui-btn {
+				padding: 10px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav" style="padding-right: 15px;">
+			<h1 class="mui-title">手机扫码</h1>
+			<button id='setting' class=" mui-pull-right mui-btn-link">设置</button>
+		</header>
+		<div id="dcontent" class="dcontent">
+		
+			<br/>
+<!--
+			<img style="width:40%" id="bimg" src="images/barcode.png"/>
+	-->
+			<ul id="accountinfo" class="dlist" style="text-align:center;">
+				<li id="accountinfoLi" class="ditem">您好 <span id='account'></span>，您已成功登录。</li>
+			</ul>
+			<div class="button" onclick="clicked('barcode_scan.html',true,true);">扫一扫</div>
+			<!--
+			<div class="button" onclick="payAli();">支付宝支付(100/年)</div>
+			-->
+			<div class="mui-card">
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell mui-collapse">
+						<a class="mui-navigate-right" href="#">表单期望地区从长期的青春痘却迟迟等完全成为驱动错误去完成</a>
+						<div class="mui-collapse-content">
+							<form class="mui-input-group">
+								<div class="mui-input-row">
+									<label>Input</label>
+									<input type="text" placeholder="普通输入框">
+								</div>
+								<div class="mui-input-row">
+									<label>Input</label>
+									<input type="text" class="mui-input-clear" placeholder="带清除按钮的输入框">
+								</div>
+		
+								<div class="mui-input-row mui-plus-visible">
+									<label>Input</label>
+									<input type="text" class="mui-input-speech mui-input-clear" placeholder="语音输入">
+								</div>
+								<div class="mui-button-row">
+									<button class="mui-btn mui-btn-primary" type="button" onclick="return false;">确认</button>&nbsp;&nbsp;
+									<button class="mui-btn mui-btn-primary" type="button" onclick="return false;">取消</button>
+								</div>
+							</form>
+						</div>
+					</li>
+				</ul>
+			</div>
+			
+			<!--
+			<div class="button" onclick="clicked('barcode_scan2.html',true,true);">扫一扫（自定义）</div>
+			-->
+
+			<ul id="history" class="dlist" style="text-align:left;">
+				<li id="nohistory" class="ditem" onclick="onempty();">无历史记录	</li>
+			</ul>
+			<br/>
+			<div class="button button-waring" onclick="cleanHistroy();">清空历史记录</div>
+		</div>
+		<div id="output">
+			扫码详情
+		</div>
+		
+		<script>
+			(function($, doc) {
+				$.init();
+				var settings = app.getSettings();
+				var account = doc.getElementById('account');
+				//
+				window.addEventListener('show', function() {
+					var state = app.getState();
+					account.innerText = state.account;
+				}, false);
+				$.plusReady(function() {
+					var settingPage = $.preload({
+						"id": 'setting',
+						"url": 'setting.html'
+					});
+					//设置
+					var settingButton = doc.getElementById('setting');
+					//settingButton.style.display = settings.autoLogin ? 'block' : 'none';
+					settingButton.addEventListener('tap', function(event) {
+						$.openWindow({
+							id: 'setting',
+							show: {
+								aniShow: 'pop-in'
+							},
+							styles: {
+								popGesture: 'hide'
+							},
+							waiting: {
+								autoShow: false
+							}
+						});
+					});
+					//--
+					$.oldBack = mui.back;
+					var backButtonPress = 0;
+					$.back = function(event) {
+						backButtonPress++;
+						if (backButtonPress > 1) {
+							plus.runtime.quit();
+						} else {
+							plus.nativeUI.toast('再按一次退出应用');
+						}
+						setTimeout(function() {
+							backButtonPress = 0;
+						}, 1000);
+						return false;
+					};
+				});
+			}(mui, document));
+		</script>
+		
+	</body>
+
+</html>

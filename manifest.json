@@ -1,0 +1,235 @@
+{
+	"id": "drugs_qr",
+	"name": "手机扫码",
+	"version": {
+		"name": "1.0.6",
+		"code": "83"
+	},
+	"description": "",
+	"icons": {
+		"72": "icon.png"
+	},
+	"launch_path": "login.html",
+	"developer": {
+		"name": "ccloveni@163.com",
+		"email": "ccloveni@163.com",
+		"url": "http:\/\/www.dcloud.io"
+	},
+	"permissions": {
+		"Accelerometer": {
+			"description": "访问加速度感应器"
+		},
+		"Cache": {
+			"description": "管理应用缓存"
+		},
+		"Console": {
+			"description": "跟踪调试输出日志"
+		},
+		"Downloader": {
+			"description": "文件下载管理"
+		},
+		"Events": {
+			"description": "应用扩展事件"
+		},
+		"File": {
+			"description": "访问本地文件系统"
+		},
+		"Gallery": {
+			"description": "访问系统相册"
+		},
+		"Invocation": {
+			"description": "使用Native.js能力"
+		},
+		"Orientation": {
+			"description": "访问方向感应器"
+		},
+		"Proximity": {
+			"description": "访问距离感应器"
+		},
+		"Storage": {
+			"description": "管理应用本地数据"
+		},
+		"UI": {},
+		"Uploader": {
+			"description": "管理文件上传任务"
+		},
+		"Runtime": {
+			"description": "访问运行期环境"
+		},
+		"XMLHttpRequest": {
+			"description": "跨域网络访问"
+		},
+		"Zip": {
+			"description": "文件压缩与解压缩"
+		},
+		"Webview": {
+			"description": "Webview"
+		},
+		"NativeUI": {
+			"description": "NativeUI"
+		},
+		"Navigator": {
+			"description": "Navigator"
+		},
+		"NativeObj": {
+			"description": "NativeObj"
+		},
+		"Device": {
+			"description": "Device"
+		},
+		"Barcode": {
+			"description": "Barcode"
+		},
+		"Payment": {}
+	},
+	"plus": {
+		"distribute": {
+			"google": {
+				"permissions": [
+					"<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+					"<uses-feature android:name=\"android.hardware.camera\"/>",
+					"<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+					"<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+					"<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+					"<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+					"<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+					"<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
+					"<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+					"<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+					"<uses-permission android:name=\"android.permission.CAMERA\"/>"
+				]
+			},
+			"plugins": {
+				"payment": {
+					"weixin": {
+						"description": "微信支付",
+						"appid": "wxa1bd4ff63044ff3b"
+					}
+				}
+			}
+		},
+		"splashscreen": {
+			"autoclose": true,
+			"waiting": true,
+			"delay": "0"
+		},
+		"runmode": "normal",
+		"signature": "Sk9JTiBVUyBtYWlsdG86aHIyMDEzQGRjbG91ZC5pbw=="
+	},
+	"dependencies": {
+		"pages": {
+			"barcode_scan.html": {
+				"href": "barcode_scan.html",
+				"resources": [
+					"js/common.js"
+				],
+				"priority": 2
+			},
+			"main.html": {
+				"href": "main.html",
+				"resources": [
+					"css/mui.min.css",
+					"fonts/mui.ttf",
+					"js/mui.min.js",
+					"js/app.js",
+					"js/common.js",
+					"js/immersed.js",
+					"images/barcode.png",
+					"css/common.css"
+				],
+				"refer": [
+					"login.html",
+					"barcode_scan.html"
+				],
+				"priority": 1
+			},
+			"unlock.html": {
+				"href": "unlock.html",
+				"resources": [
+					"css/mui.min.css",
+					"fonts/mui.ttf",
+					"js/mui.min.js",
+					"js/mui.locker.js",
+					"js/app.js"
+				],
+				"refer": [
+					"login.html",
+					"main.html"
+				],
+				"priority": 0
+			},
+			"forget_password.html": {
+				"href": "forget_password.html",
+				"resources": [
+					"css/mui.min.css",
+					"fonts/mui.ttf",
+					"css/style.css",
+					"js/mui.min.js",
+					"js/app.js"
+				],
+				"priority": 1
+			},
+			"reg.html": {
+				"href": "reg.html",
+				"resources": [
+					"css/mui.min.css",
+					"fonts/mui.ttf",
+					"css/style.css",
+					"js/mui.min.js",
+					"js/app.js"
+				],
+				"refer": [
+					"login.html"
+				],
+				"priority": 3
+			},
+			"login.html": {
+				"href": "login.html",
+				"resources": [
+					"css/mui.min.css",
+					"fonts/mui.ttf",
+					"css/style.css",
+					"js/mui.min.js",
+					"js/mui.enterfocus.js",
+					"js/app.js"
+				],
+				"refer": [
+					"unlock.html",
+					"forget_password.html",
+					"main.html",
+					"reg.html"
+				],
+				"priority": 0
+			}
+		},
+		"idle": {
+			"resources": [
+				"tab-webview-subpage-about.html",
+				"tab-webview-subpage-setting.html",
+				"tab-webview-subpage-chat.html",
+				"main123.html",
+				"images/weixin.png",
+				"images/qq.png",
+				"images/iconfont-tianjia.png",
+				"images/sinaweibo.png",
+				"libs/easymob-webim-sdk/json2.js",
+				"images/qihoo.png",
+				"libs/easymob-webim-sdk/jquery-1.11.1.js",
+				"js/feedback-page.js",
+				"tab-webview-subpage-contact.html",
+				"js/mui.view.js",
+				"libs/easymob-webim-sdk/easemob.im-1.0.5.js",
+				"setting.html",
+				"libs/easymob-webim-sdk/quickstart.md",
+				"main-base.html",
+				"index.html",
+				"css/app.css",
+				"tab-webview-subpage-barcode.html",
+				"css/feedback-page.css",
+				"js/feedback.js",
+				"images/user-photo.png",
+				"libs/easymob-webim-sdk/strophe-custom-2.0.0.js"
+			]
+		}
+	}
+}
